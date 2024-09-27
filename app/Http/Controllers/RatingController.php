@@ -84,12 +84,14 @@ class RatingController extends Controller
         if($rating)
         {
             DB::update([
-                'rating' => $request['rating'],
-                'rating_datetime' => $request['rating_datetime'],
+                'rating' => 'name',
+                'rating_datetime' => 'rating_datetime',
             ]);
 
-            return response()->json(["message" => 'Saved successfull']);
+            return response()->json(["message" => 'updated successfull']);
         }
+
+        return response()->json(["message" => 'updated was notsuccessfull']);
     }
 
     /**
@@ -105,8 +107,10 @@ class RatingController extends Controller
         if($rating)
         {
             $rating->delete();
+            return response()->json(['message' => 'deleted successful']);
         }
 
-        return response()->json(['message' => 'deleted successful']);
+        return response()->json(['message' => 'deleted unsuccessful']);
+
     }
 }
