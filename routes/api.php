@@ -16,5 +16,7 @@ use App\Http\Controllers\RatingController;
 */
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::resource('rate_product', RatingController::class);
+    Route::post('/rate-product', [RatingController::class, 'rateProduct']);
+    Route::delete('/remove-rating', [RatingController::class, 'removeRating']);
+    Route::put('/change-rating', [RatingController::class, 'changeRating']);
 });

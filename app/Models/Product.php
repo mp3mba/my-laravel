@@ -9,13 +9,14 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'description',
-        'price'
-    ];
+    protected $guarded = [];
 
-    public function userRating()
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
+    }
+
+    public function ratings()
     {
         return $this->hasMany(UserRating::class);
     }

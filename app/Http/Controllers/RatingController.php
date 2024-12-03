@@ -3,10 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\UserRating;
-use App\Models\User;
-use App\Models\Product;
-use DB;
+use App\Models\Rating;
 
 class RatingController extends Controller
 {
@@ -17,11 +14,17 @@ class RatingController extends Controller
      */
     public function index()
     {
-        $products = User::join('user_ratings', 'users.id', '=', 'user_ratings.user_id')
-        ->select('user_ratings.rating', 'users.*')
-        ->get();
+        //
+    }
 
-        return response()->json(['products' => $products]);
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        //
     }
 
     /**
@@ -30,22 +33,30 @@ class RatingController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function rateProduct(Request $request)
     {
-        $user = new User;
-        $rating = new UserRating;
-        $product = new Product;
-
-        $validateRating = $request->valodate([
-            'rating' => 'numeric|unique::user_ratings'
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'rating' => 'required|integer|min:1|max:5',
         ]);
-
-        $userRating = DB::create([
-            'rating' => $request['rating'],
-            'rating_datetime' => $request['rating_datetime'],
+    
+        // Check if the user has already rated the product
+        $existingRating = Rating::where('user_id', auth()->id())
+                                ->where('product_id', $validated['product_id'])
+                                ->first();
+    
+        if ($existingRating) {
+            return response()->json(['message' => 'You have already rated this product.'], 400);
+        }
+    
+        // Create a new rating
+        Rating::create([
+            'user_id' => auth()->id(),
+            'product_id' => $validated['product_id'],
+            'rating' => $validated['rating'],
         ]);
-
-        return response()->json(["message" => 'Saved successfull']);
+    
+        return response()->json(['message' => 'Product rated successfully.'], 200);
     }
 
     /**
@@ -77,21 +88,27 @@ class RatingController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function changeRating(Request $request, $id)
     {
-        $rating = find::UserRating($id);
+        
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'rating' => 'required|integer|min:1|max:5',
+        ]);
 
-        if($rating)
-        {
-            DB::update([
-                'rating' => 'name',
-                'rating_datetime' => 'rating_datetime',
-            ]);
+        $rating = Rating::where('user_id', auth()->id())
+                        ->where('product_id', $validated['product_id'])
+                        ->first();
 
-            return response()->json(["message" => 'updated successfull']);
+        if (!$rating) {
+            return response()->json(['message' => 'Rating not found.'], 404);
         }
 
-        return response()->json(["message" => 'updated was notsuccessfull']);
+        $rating->update([
+            'rating' => $validated['rating'],
+        ]);
+
+        return response()->json(['message' => 'Rating updated successfully.'], 200);
     }
 
     /**
@@ -100,17 +117,22 @@ class RatingController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function removeRating(Request $request)
     {
-        $rating = find::UserRating($id);
-
-        if($rating)
-        {
-            $rating->delete();
-            return response()->json(['message' => 'deleted successful']);
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+        ]);
+    
+        $rating = Rating::where('user_id', auth()->id())
+                        ->where('product_id', $validated['product_id'])
+                        ->first();
+    
+        if (!$rating) {
+            return response()->json(['message' => 'Rating not found.'], 404);
         }
-
-        return response()->json(['message' => 'deleted unsuccessful']);
-
+    
+        $rating->delete();
+    
+        return response()->json(['message' => 'Rating removed successfully.'], 200);
     }
 }

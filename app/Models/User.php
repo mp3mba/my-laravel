@@ -42,7 +42,12 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function userRating()
+    public function products()
+    {
+        return $this->belongsToMany(Product::class);
+    }
+
+    public function ratings()
     {
         return $this->hasMany(UserRating::class);
     }

@@ -15,10 +15,10 @@ return new class extends Migration
     {
         Schema::create('user_ratings', function (Blueprint $table) {
             $table->id();
-            $table->integer('rating');
-            $table->string('rating_datetime');
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('product_id');
+            $table->tinyInteger('rating');
+            $table->dateTime('rating_datatime')->useCurrent();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->timestamps();
